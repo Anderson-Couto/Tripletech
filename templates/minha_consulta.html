@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% include 'partials/_menu.html' %}
+{% include 'partials/_alertas.html' %}
+<section class="container mt-3 mb-3">
+<div>
+    <form action="{% url 'minha_consulta' %}" method="post">{% csrf_token %}
+        {% for field in form.visible_fields %}
+        <div class="form-group">
+            <label for="{{field.id_for_label}}">{{field.label}}</label>
+            {{field}}
+        </div>
+        {% endfor %}
+        <input type="submit" value="Pesquisar" class="btn btn-dark">
+    </form>
+</div>
+</section>
+
+    <table class="table table-striped table-bordered table-hover">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Local</th>
+            <th scope="col">Data Inicio</th>
+            <th scope="col">Data Fim</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if agenda %}
+        {% for linha in agenda %}
+        <tr>
+            <td scope="row">{{ linha.0 }}</td>
+            <td>{{ linha.1 }}</td>
+            <td>{{ linha.2 }}</td>
+            <td>{{ linha.3 }}</td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+        </tbody>
+    </table>
+
+<section class="container mt-3 mb-3">
+    <p>Apresentando dados de {{ form.dia_inicial.value }} à {{ form.dia_final.value }}</p>
+</section>
+
+{% endblock %}

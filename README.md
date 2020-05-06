@@ -65,3 +65,30 @@ Se todos os processos ocorrerem como o esperado, a seguinte mensagem aparecerá 
 [imagem 4](https://prnt.sc/sc7lrp)
 
 O serviço web Tripletech Agendamentos estará hospedado no link http://127.0.0.1:8000/ e já poderá ser acessado!!
+
+## Features
+
+Este projeto possui três funcionalidades básicas:
+
+
+**1. Consultar** 
+
+Nesta aba, estão dispostos os Agendamentos, ordenado pelo seus IDs e agrupados a cada 25 por página. 
+
+Também há um formulário, no qual o usuário poderá selecionar uma data inicial e final de uma pesquisa. O output recebido serão todos os agendamentos que ocorrem no intervalo da data pesquisada
+
+**2. Agendar**
+
+O usuário fornecerá ao sistema um documento csv no qual a primeira linha contém o número de membros no evento;na segunda, o id de cada membro; e na terceira, os dias e horas em que o evento começa e termina. Será responsabilidade do sistema validar os dados recebidos. 
+
+Em casos de erro ou conflitos*, será encaminhada uma mensagem de erro ao usuário. Se estiver tudo certo, será renderizada uma query sql para a inserção dos novos dados
+
+*Foi considerado "conflito" uma solicitação de agendamento na qual um ou mais membros do evento já estão agendados em outro evento para aquele intervalo de tempo. Ou seja, diversos agendamentos podem ser realizados para uma mesma data e hora, desde que os membros envolvidos estejam disponíveis.
+
+**3. Atualizar**
+
+O usuário fornecerá ao sistema um documento csv no qual a primeira linha contém um ID de agendamento; e na segunda, os novos dias e horas em que o evento começa e termina. Será responsabilidade do sistema validar os dados recebidos. 
+
+Em casos de erro ou conflitos*, será encaminhada uma mensagem de erro ao usuário. Se estiver tudo certo, será renderizada uma query sql para a atualização dos novos dados
+
+*Foi considerado "conflito" uma solicitação de atualização de agendamento na qual um ou mais membros do evento já estão agendados em outro evento para aquele intervalo de tempo(desconsiderando o evento no qual está sendo requisitada a atualização).

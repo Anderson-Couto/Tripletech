@@ -7,7 +7,9 @@ BANCO_DADOS_INTEGRADO = retorna_consulta('select PA.PessoaId, PA.AgendamentoId, 
 BANCO_DADOS_PESSOA = retorna_consulta('select * from dbo.Pessoa')
 BANCO_DADOS_AGENDAMENTO = retorna_consulta('select * from dbo.Agendamento')
 
+
 def importar_csv(documento):
+    # le os dados de um documento csv e retorna um dicionário com as informações contidas
     leitor = csv.reader(documento)
     dicionario = {}
     n = 0
@@ -18,11 +20,14 @@ def importar_csv(documento):
 
 
 def transformar(separador, dicionario):
+    # recebe um dicionário e retorna as informações em formato de string
     informacao = f'{separador}'.join(dicionario)
     return informacao
 
 
 def verificador_disponibilidade_por_pessoa(ident_pessoa, data_i, data_f):
+    # verifica se um id tem a disponibilidade de ser agendado numa determinada data e horário.
+    # se estiver indisponível, o método retornará False
 
     validador = True
 
@@ -46,6 +51,8 @@ def verificador_disponibilidade_por_pessoa(ident_pessoa, data_i, data_f):
 
 
 def id_eh_registrado(id, banco_dados):
+    # lê todos os ids de uma tabela no banco de dados e verifica se um determinado id fornecido existe
+    # em determinado banco de dados
     validador = True
 
     ids_registrados = []
@@ -59,6 +66,7 @@ def id_eh_registrado(id, banco_dados):
 
 
 def buscar_pessoas_no_evento(agendamento_id):
+    # recebe um id de agendamento e retorna uma lista com os membros que estão naquele evento
     lista_ids = []
     for objeto in BANCO_DADOS_INTEGRADO:
         if str(agendamento_id) == str(objeto[1]):
@@ -68,6 +76,8 @@ def buscar_pessoas_no_evento(agendamento_id):
 
 
 def vdpp_dois(ident_pessoa, data_i, data_f, ident_agend):
+    # método semelhante ao verificador_disponibilidade_por_pessoa, mas com a adição da funcionalidades de pular
+    # um determinado agendamento
 
     validador = True
 

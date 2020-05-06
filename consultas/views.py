@@ -9,6 +9,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 def index(request):
+    # Método para renderizar a página inicial do sistema
     form = ConsultasForms()
     agenda = retorna_consulta('SELECT * FROM dbo.Agendamento')
     paginator = Paginator(agenda, 25)
@@ -22,6 +23,8 @@ def index(request):
 
 
 def revisao_consulta(request):
+    # metodo para renderizar a página de consultas a partir do forms da página inicial. Esse método também
+    # é capaz de renderizar a si mesmo, fazendo novas consultas como se estivesse no index.
     if request.method == 'POST':
         form = ConsultasForms(request.POST)
 
@@ -68,6 +71,9 @@ def revisao_consulta(request):
 
 
 def agendar(request):
+    # método para a validação do documento csv e análise de conflitos com o banco de dados para realização de
+    # novos agendamentos. Renderiza a si mesmo, quando um agendamento novo é válido, com as querys sql para serem
+    # usadas no banco de dados
     try:
         if request.method == 'POST':
             adicionar_agendamento = TextIOWrapper(request.FILES['adicionar_agendamento'].file)
@@ -111,6 +117,9 @@ def agendar(request):
 
 
 def atualizar(request):
+    # método para a validação do documento csv e análise de conflitos com o banco de dados para realização de
+    # atualização de agendamentos já existentes. Renderiza a si mesmo, quando uma atualização é válida, com as querys
+    # sql para serem usadas no banco de dados.
     try:
         if request.method == 'POST':
             atualizar_agendamento = TextIOWrapper(request.FILES['atualizar_agendamento'].file)

@@ -5,13 +5,17 @@ from consultas.forms import ConsultasForms
 from consultas.conexão_database import retorna_consulta, BANCO_DADOS_AGENDAMENTO, BANCO_DADOS_PESSOA
 from consultas.validadores import verificador_disponibilidade_por_pessoa, importar_csv, transformar, id_eh_registrado,\
     buscar_pessoas_no_evento, vdpp_dois
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 def index(request):
     form = ConsultasForms()
     agenda = retorna_consulta('SELECT * FROM dbo.Agendamento')
+    paginator = Paginator(agenda, 25)
+    page = request.GET.get('page')
+    agendamentos_por_pagina = paginator.get_page(page)
     dados = {
-        'agenda': agenda,
+        'agenda': agendamentos_por_pagina,
         'form': form,
     }
     return render(request, 'index.html', dados)
@@ -64,69 +68,80 @@ def revisao_consulta(request):
 
 
 def agendar(request):
-    if request.method == 'POST':
-        adicionar_agendamento = TextIOWrapper(request.FILES['adicionar_agendamento'].file)
-        dados = importar_csv(adicionar_agendamento)
-        numero_pessoas = transformar('', dados[0][0])
-        ids_pessoas = dados[1]
-        data_inicio = transformar('', dados[2][0])
-        data_fim = transformar('', dados[2][1])
+    try:
+        if request.method == 'POST':
+            adicionar_agendamento = TextIOWrapper(request.FILES['adicionar_agendamento'].file)
+            dados = importar_csv(adicionar_agendamento)
+            numero_pessoas = transformar('', dados[0][0])
+            ids_pessoas = dados[1]
+            data_inicio = transformar('', dados[2][0])
+            data_fim = transformar('', dados[2][1])
 
-        if str(len(dados[1])) != numero_pessoas:
-            messages.error(request, 'Numero de pessoas incompatível')
-            return render(request, 'agendar.html')
-
-        for id_pessoa in ids_pessoas:
-            if id_eh_registrado(int(id_pessoa), banco_dados=BANCO_DADOS_PESSOA) is False:
-                messages.error(request, f'Usuario {id_pessoa} não encontrado(a)')
+            if str(len(dados[1])) != numero_pessoas:
+                messages.error(request, 'Numero de pessoas incompatível')
                 return render(request, 'agendar.html')
-            else:
-                if verificador_disponibilidade_por_pessoa(id_pessoa, data_inicio, data_fim) is False:
-                    messages.error(request, f'O Usuario {id_pessoa} está indisponível neste horário')
+
+            for id_pessoa in ids_pessoas:
+                if id_eh_registrado(int(id_pessoa), banco_dados=BANCO_DADOS_PESSOA) is False:
+                    messages.error(request, f'Usuario {id_pessoa} não encontrado(a)')
                     return render(request, 'agendar.html')
+                else:
+                    if verificador_disponibilidade_por_pessoa(id_pessoa, data_inicio, data_fim) is False:
+                        messages.error(request, f'O Usuario {id_pessoa} está indisponível neste horário')
+                        return render(request, 'agendar.html')
 
-        id_novo_agendamento = retorna_consulta("select MAX(ID)+1 from dbo.Agendamento")
-        id_novo_agendamento = transformar('', str(id_novo_agendamento[0][0]))
+            id_novo_agendamento = retorna_consulta("select MAX(ID)+1 from dbo.Agendamento")
+            id_novo_agendamento = transformar('', str(id_novo_agendamento[0][0]))
 
-        informacoes = [ids_pessoas, data_inicio, data_fim, id_novo_agendamento]
-        contexto = {
-            'informacoes': informacoes
-        }
+            informacoes = [ids_pessoas, data_inicio, data_fim, id_novo_agendamento]
+            contexto = {
+                'informacoes': informacoes
+            }
 
-        return render(request, 'agendar.html', contexto)
+            messages.success(request, 'O agendamento solicitado não possui conflitos!!')
+            return render(request, 'agendar.html', contexto)
 
-        # messages.success(request, 'Agendamento realizado com sucesso!!')
-        #return redirect('index')
-    else:
+            # messages.success(request, 'Agendamento realizado com sucesso!!')
+            # return redirect('index')
+        else:
+            return render(request, 'agendar.html')
+    except:
+        messages.error(request, 'O arquivo .csv fornecido não é compátível com a funcionalidade Agendamento. Verifique a presença de erros.')
         return render(request, 'agendar.html')
 
 
 def atualizar(request):
-    if request.method == 'POST':
-        atualizar_agendamento = TextIOWrapper(request.FILES['atualizar_agendamento'].file)
-        dados = importar_csv(atualizar_agendamento)
-        id_evento = transformar('', dados[0][0])
-        data_inicio_nova = transformar('', dados[1][0])
-        data_fim_nova = transformar('', dados[1][1])
+    try:
+        if request.method == 'POST':
+            atualizar_agendamento = TextIOWrapper(request.FILES['atualizar_agendamento'].file)
+            dados = importar_csv(atualizar_agendamento)
+            id_evento = transformar('', dados[0][0])
+            data_inicio_nova = transformar('', dados[1][0])
+            data_fim_nova = transformar('', dados[1][1])
 
-        if id_eh_registrado(int(id_evento), banco_dados=BANCO_DADOS_AGENDAMENTO):
-            membros_evento = buscar_pessoas_no_evento(id_evento)
-            for id_pessoa in membros_evento:
-                if vdpp_dois(id_pessoa, data_inicio_nova, data_fim_nova, int(id_evento)) is False:
-                    messages.error(request, f'O Usuario {id_pessoa} está indisponível neste horário')
-                    return render(request, 'atualizar.html')
+            if id_eh_registrado(int(id_evento), banco_dados=BANCO_DADOS_AGENDAMENTO):
+                membros_evento = buscar_pessoas_no_evento(id_evento)
+                for id_pessoa in membros_evento:
+                    if vdpp_dois(id_pessoa, data_inicio_nova, data_fim_nova, int(id_evento)) is False:
+                        messages.error(request, f'O Usuario {id_pessoa} está indisponível neste horário')
+                        return render(request, 'atualizar.html')
 
-            informacoes = [id_evento, data_inicio_nova, data_fim_nova]
-            contexto = {
-                'informacoes': informacoes
-            }
-            return render(request, 'atualizar.html', contexto)
-            # messages.success(request, f'Evento {id_evento} atualizado com sucesso!!')
-            # return redirect('index')
+                informacoes = [id_evento, data_inicio_nova, data_fim_nova]
+                contexto = {
+                    'informacoes': informacoes
+                }
+
+                messages.success(request, f'Não há conflitos para a atualização do evento {id_evento}!!')
+                return render(request, 'atualizar.html', contexto)
+
+                # messages.success(request, f'Evento {id_evento} atualizado com sucesso!!')
+                # return redirect('index')
+            else:
+                messages.error(request, f'Evento {id_evento} não encontrado')
+                return render(request, 'atualizar.html')
         else:
-            messages.error(request, f'Evento {id_evento} não encontrado')
             return render(request, 'atualizar.html')
-    else:
+    except:
+        messages.error(request, 'O arquivo .csv fornecido não é compátível com a funcionalidade Atualizar. Verifique a presença de erros.')
         return render(request, 'atualizar.html')
-
 

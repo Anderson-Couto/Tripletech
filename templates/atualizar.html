@@ -11,9 +11,11 @@
     {% csrf_token %}
     <div class="row">
         <label><b>Atualizar Agendamento</b></label>
+    </div>
+    <div class="container mt-3 mb-3">
         <input type="file" name="atualizar_agendamento" required>
     </div>
-    <div>
+    <div class="container mt-3 mb-3">
         <button type="submit">Enviar</button>
     </div>
 </form>
@@ -22,7 +24,7 @@
 
 {% if informacoes %}
 <section class="container mt-3 mb-3">
-<p>UPDATE dbo.Agendamento SET DataInicio = {{ informacoes.1 }}, DataFim = {{ informacoes.2 }} WHERE ID = {{ informacoes.0 }};</p>
+<p>UPDATE dbo.Agendamento SET DataInicio = "{{ informacoes.1 }}", DataFim = "{{ informacoes.2 }}" WHERE ID = {{ informacoes.0 }};</p>
 </section>
 {% endif %}
 

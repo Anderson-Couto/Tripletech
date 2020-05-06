@@ -29,7 +29,7 @@
         </thead>
         <tbody>
         {% if agenda %}
-        {% for linha in agenda %}
+        {% for linha in agenda.object_list %}
         <tr>
             <td scope="row">{{ linha.0 }}</td>
             <td>{{ linha.1 }}</td>
@@ -40,6 +40,8 @@
         {% endif %}
         </tbody>
     </table>
+
+{% include 'partials/_pagination.html' %}
 
 
 {% endblock %}

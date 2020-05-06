@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 
 {% include 'partials/_menu.html' %}
 {% include 'partials/_alertas.html' %}
 
-
+<section class="container mt-3 mb-3">
 <div class="container">
 <form action="{% url 'atualizar' %}" method="POST" enctype="multipart/form-data">
     {% csrf_token %}
@@ -17,5 +18,13 @@
     </div>
 </form>
 </div>
+</section>
+
+{% if informacoes %}
+<section class="container mt-3 mb-3">
+<p>UPDATE dbo.Agendamento SET DataInicio = {{ informacoes.1 }}, DataFim = {{ informacoes.2 }} WHERE ID = {{ informacoes.0 }};</p>
+</section>
+{% endif %}
+
 
 {% endblock %}

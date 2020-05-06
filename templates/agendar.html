@@ -1,20 +1,31 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 
 {% include 'partials/_menu.html' %}
 {% include 'partials/_alertas.html' %}
-
-<div class="container">
-<form action="{% url 'agendar' %}" method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div class="row">
-        <label><b>Adicionar Agendamento</b></label>
-        <input type="file" name="adicionar_agendamento" required>
+<section class="container mt-3 mb-3">
+    <div class="container">
+        <form action="{% url 'agendar' %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row">
+                <label><b>Adicionar Agendamento</b></label>
+                <input type="file" name="adicionar_agendamento" required>
+            </div>
+            <div>
+                <button type="submit">Enviar</button>
+            </div>
+        </form>
     </div>
-    <div>
-        <button type="submit">Enviar</button>
-    </div>
-</form>
-</div>
+</section>
 
+{% if informacoes %}
+<section class="container mt-3 mb-3">
+<p>INSERT INTO dbo.Agendamento (Local, DataInicio, DataFim) VALUES ("", "{{ informacoes.1 }}", "{{ informacoes.2 }}");</p>
+
+{% for pessoa in informacoes.0 %}
+<p>INSERT INTO dbo.PessoaAgendamento (PessoaId, AgendamentoId) VALUES ({{ pessoa }}, {{ informacoes.3 }});</p>
+{% endfor %}
+</section>
+{% endif %}
 {% endblock %}

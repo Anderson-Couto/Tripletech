@@ -4,7 +4,7 @@ from django.contrib import messages
 from consultas.forms import ConsultasForms
 from consultas.conexão_database import retorna_consulta, BANCO_DADOS_AGENDAMENTO, BANCO_DADOS_PESSOA
 from consultas.validadores import verificador_disponibilidade_por_pessoa, importar_csv, transformar, id_eh_registrado,\
-    buscar_pessoas_no_evento
+    buscar_pessoas_no_evento, vdpp_dois
 
 
 def index(request):
@@ -30,10 +30,9 @@ def revisao_consulta(request):
                 return redirect('index')
 
             agenda = retorna_consulta('SELECT * FROM dbo.Agendamento ORDER BY DataInicio')
-
             lista_agendamentos = []
-            for agendamento in agenda:
 
+            for agendamento in agenda:
                 caso_a = consulta_dia_inicial <= agendamento[2].date() and consulta_dia_final >= agendamento[3].date()
                 caso_b = consulta_dia_final == agendamento[2].date()
                 caso_c = consulta_dia_inicial == agendamento[3].date()
@@ -50,6 +49,7 @@ def revisao_consulta(request):
                 'agenda': lista_agendamentos,
                 'form': form,
             }
+
             return render(request, 'minha_consulta.html', dados)
 
         agenda = retorna_consulta('SELECT * FROM dbo.Agendamento ORDER BY DataInicio')
@@ -57,7 +57,10 @@ def revisao_consulta(request):
             'agenda': agenda,
             'form': form,
         }
+
         return render(request, 'minha_consulta.html', dados)
+    else:
+        return redirect('index')
 
 
 def agendar(request):
@@ -75,15 +78,25 @@ def agendar(request):
 
         for id_pessoa in ids_pessoas:
             if id_eh_registrado(int(id_pessoa), banco_dados=BANCO_DADOS_PESSOA) is False:
-                messages.error(request, 'Um ou mais IDs não encontrados')
+                messages.error(request, f'Usuario {id_pessoa} não encontrado(a)')
                 return render(request, 'agendar.html')
             else:
                 if verificador_disponibilidade_por_pessoa(id_pessoa, data_inicio, data_fim) is False:
-                    messages.error(request, 'Horário Ocupado')
+                    messages.error(request, f'O Usuario {id_pessoa} está indisponível neste horário')
                     return render(request, 'agendar.html')
 
-        messages.success(request, 'Agendamento realizado com sucesso!!')
-        return redirect('index')
+        id_novo_agendamento = retorna_consulta("select MAX(ID)+1 from dbo.Agendamento")
+        id_novo_agendamento = transformar('', str(id_novo_agendamento[0][0]))
+
+        informacoes = [ids_pessoas, data_inicio, data_fim, id_novo_agendamento]
+        contexto = {
+            'informacoes': informacoes
+        }
+
+        return render(request, 'agendar.html', contexto)
+
+        # messages.success(request, 'Agendamento realizado com sucesso!!')
+        #return redirect('index')
     else:
         return render(request, 'agendar.html')
 
@@ -96,17 +109,22 @@ def atualizar(request):
         data_inicio_nova = transformar('', dados[1][0])
         data_fim_nova = transformar('', dados[1][1])
 
-        if id_eh_registrado(int(id_evento), banco_dados=BANCO_DADOS_AGENDAMENTO) is True:
+        if id_eh_registrado(int(id_evento), banco_dados=BANCO_DADOS_AGENDAMENTO):
             membros_evento = buscar_pessoas_no_evento(id_evento)
             for id_pessoa in membros_evento:
-                if verificador_disponibilidade_por_pessoa(id_pessoa, data_inicio_nova, data_fim_nova) is False:
-                    messages.error(request, 'Horário Ocupado')
+                if vdpp_dois(id_pessoa, data_inicio_nova, data_fim_nova, int(id_evento)) is False:
+                    messages.error(request, f'O Usuario {id_pessoa} está indisponível neste horário')
                     return render(request, 'atualizar.html')
 
-            messages.success(request, 'Agendamento atualizado com sucesso!!')
-            return redirect('index')
+            informacoes = [id_evento, data_inicio_nova, data_fim_nova]
+            contexto = {
+                'informacoes': informacoes
+            }
+            return render(request, 'atualizar.html', contexto)
+            # messages.success(request, f'Evento {id_evento} atualizado com sucesso!!')
+            # return redirect('index')
         else:
-            messages.error(request, 'ID de Agendamento não encontrado')
+            messages.error(request, f'Evento {id_evento} não encontrado')
             return render(request, 'atualizar.html')
     else:
         return render(request, 'atualizar.html')

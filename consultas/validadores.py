@@ -67,3 +67,27 @@ def buscar_pessoas_no_evento(agendamento_id):
     return lista_ids
 
 
+def vdpp_dois(ident_pessoa, data_i, data_f, ident_agend):
+
+    validador = True
+
+    data_i = datetime.datetime.strptime(data_i, "%Y-%m-%d %H:%M:%S")
+    data_f = datetime.datetime.strptime(data_f, "%Y-%m-%d %H:%M:%S")
+    if data_f < data_i:
+        validador = False
+
+    for objeto in BANCO_DADOS_INTEGRADO:
+        if ident_agend == objeto[1]:
+            continue
+        else:
+            if str(ident_pessoa) == str(objeto[0]):
+                caso_a = data_i > objeto[3] and data_i < objeto[4]
+                caso_b = data_f > objeto[3] and data_f < objeto[4]
+                caso_c = data_i == objeto[3]
+                caso_d = data_f == objeto[4]
+                caso_e = data_i < objeto[3] and data_f > objeto[4]
+                caso_f = caso_c and caso_d
+                if caso_a or caso_b or caso_c or caso_d or caso_e or caso_f:
+                    validador = False
+
+    return validador

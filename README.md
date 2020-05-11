@@ -10,7 +10,7 @@ hospedado no SQL Server e as novas informações, que passarão por diversos tes
 Para executar o projeto, será necessário ter os seguintes programas instalados:
 
 - [Python 3.7.7: Linguagem e versão na qual o projeto foi desenvolvido](https://www.python.org/downloads/release/python-377/.html)
-- [PyCharm: IDE que possui diversos recursos extremamente úteis para tarefas em Python](https://www.python.org/downloads/release/python-377/.html)
+- [PyCharm: IDE que possui diversos recursos extremamente úteis para tarefas em Python](https://www.jetbrains.com/pt-br/pycharm/)
 - [ODBC Driver 11 for SQL Server no Windows](https://docs.microsoft.com/pt-br/sql/connect/odbc/windows/release-notes-odbc-sql-server-windows?view=sql-server-ver15#previous-releases)
 
 **Obs**: Se o seu computador já possuir o SQL Server instalado, ignorar a etapa de instalação do **ODBC Driver 11**.
